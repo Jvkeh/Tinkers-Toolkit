@@ -1,9 +1,7 @@
-# Tinker&#39;s Toolkit
+This fabric mod is designed to support ['Sybillian's Blood on the Clocktower in Minecraft'](https://github.com/Sybillian/minecraft-botc) modpack.
 
-## Setup
+It aims to provide useful utilities and more, such as custom keybinds!
+This mod is client-side only, and therefore is not required on the server.
 
-For setup instructions, please see the [Fabric Documentation page](https://docs.fabricmc.net/develop/getting-started/creating-a-project#setting-up) related to the IDE that you are using.
-
-## License
-
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+No AI has been or will be used in the creation of this project, neither in the creation of code or art nor as a quality check or search engine. 
+This, as with all projects I create, is a celebration of human work, and to use AI in a fork of or add-on to it is offensive at best.
