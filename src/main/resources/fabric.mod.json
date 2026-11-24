@@ -1,0 +1,31 @@
+{
+	"schemaVersion": 1,
+	"id": "tinkerstoolkit",
+	"version": "${version}",
+	"name": "Tinker's Toolkit",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "LGPL-3.0",
+	"icon": "assets/tinkerstoolkit/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+          "net.jvkeh.tinkerstoolkit.TinkersToolkit"
+		]
+	},
+	"mixins": [
+		"tinkerstoolkit.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
