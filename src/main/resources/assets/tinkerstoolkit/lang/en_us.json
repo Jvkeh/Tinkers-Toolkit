@@ -1,0 +1,18 @@
+{
+  "key.category.tinkerstoolkit.chatkeybinds": "Chat Keybinds",
+  "key.category.tinkerstoolkit.userbinds": "Cat Keybinds - User Binds",
+  "key.category.tinkerstoolkit.storyteller": "Clocktower - Storyteller",
+  "key.category.tinkerstoolkit.player": "Clocktower - Player",
+  "tinkerstoolkit.keybinds.key.menu": "Command Keybind Menu",
+  "tinkerstoolkit.keybinds.key.add_chat_keybind": "Bind a Command or Message",
+  "tinkerstoolkit.keybinds.addScreen.category": "Category",
+  "tinkerstoolkit.keybinds.addScreen.name": "Name",
+  "tinkerstoolkit.keybinds.addScreen.command": "Command or Message",
+  "tinkerstoolkit.keybinds.addScreen.keybind": "Keybind",
+  "tinkerstoolkit.keybinds.addScreen.add": "Add",
+  "tinkerstoolkit.keybinds.addScreen.cancel": "Cancel",
+  "tinkerstoolkit.keybinds.menuScreen.done": "Done",
+  "tinkerstoolkit.keybinds.menuScreen.reload": "Reload Config",
+  "tinkerstoolkit.keybinds.menuScreen.new": "Add New",
+  "tinkerstoolkit.keybinds.menuScreen.remove": "Remove Selected"
+}
