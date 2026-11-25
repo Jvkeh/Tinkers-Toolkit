@@ -21,22 +21,33 @@ public class ChatKeybind {
                 InputConstants.Type.KEYBOARD,
                 key.getValue(),
                 category);
+        registerKeybind();
+    }
 
+    public ChatKeybind(String name, String command, KeyMapping keyMapping) {
+        this.name = name;
+        this.command = command;
+        this.keyMapping = keyMapping;
+        registerKeybind();
+    }
+
+    void registerKeybind() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.options != null) {
             ArrayList<KeyMapping> keys = new ArrayList<>();
             keys.addAll(Arrays.asList(mc.options.keyMappings));
             keys.add(this.keyMapping);
             mc.options.keyMappings = keys.toArray(new KeyMapping[0]);
+            mc.options.save();
         } else
             KeyMappingHelper.registerKeyMapping(this.keyMapping);
     }
 
     void removeCommand() {
-
         Minecraft mc = Minecraft.getInstance();
         ArrayList<KeyMapping> keys = new ArrayList<>(Arrays.asList(mc.options.keyMappings));
         keys.remove(this.keyMapping);
         mc.options.keyMappings = keys.toArray(new KeyMapping[0]);
+        mc.options.save();
     }
 }

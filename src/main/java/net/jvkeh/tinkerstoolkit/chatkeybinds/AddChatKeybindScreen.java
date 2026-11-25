@@ -37,13 +37,15 @@ public class AddChatKeybindScreen extends Screen {
 
     @Override
     protected void init() {
+        int buttonWidth = 80;
+        int buttonHeight = 20;
         StringWidget nameText = new StringWidget(Component.translatable("tinkerstoolkit.keybinds.addScreen.name"), minecraft.font);
         nameText.setX(width / 4);
         nameText.setY((height / 2) - 96);
         addRenderableOnly(nameText);
 
-        nameBox = new EditBox(minecraft.font, width / 2, 24, Component.empty());
-        nameBox.setPosition(width / 2 - (nameBox.getWidth() / 2), nameText.getY() + nameText.getHeight());
+        nameBox = new EditBox(minecraft.font, width / 2, buttonHeight, Component.empty());
+        nameBox.setPosition(width / 2 - (nameBox.getWidth() / 2), nameText.getY() + 2 + nameText.getHeight());
         addRenderableWidget(nameBox);
 
         StringWidget commandText = new StringWidget(Component.translatable("tinkerstoolkit.keybinds.addScreen.command"), minecraft.font);
@@ -51,8 +53,8 @@ public class AddChatKeybindScreen extends Screen {
         commandText.setY(nameBox.getY() + nameBox.getHeight() + 4);
         addRenderableOnly(commandText);
 
-        commandBox = new EditBox(minecraft.font, width / 2, 24, Component.empty());
-        commandBox.setPosition(width / 2 - (commandBox.getWidth() / 2), commandText.getY() + commandText.getHeight());
+        commandBox = new EditBox(minecraft.font, width / 2, buttonHeight, Component.empty());
+        commandBox.setPosition(width / 2 - (commandBox.getWidth() / 2), commandText.getY() + 2 + commandText.getHeight());
         addRenderableWidget(commandBox);
         this.setInitialFocus(commandBox);
 
@@ -63,14 +65,11 @@ public class AddChatKeybindScreen extends Screen {
 
         categoryButton = Button.builder(Component.translatable("key.category.tinkerstoolkit." + CATEGORY_STRINGS.get(currentCategoryIndex)), this::onListenCategoryInput)
                 .bounds(commandBox.getX(),
-                        categoryText.getY() + categoryText.getHeight(),
+                        categoryText.getY() + 2 + categoryText.getHeight(),
                         width / 2,
-                        24)
+                        buttonHeight)
                 .build();
         addRenderableWidget(categoryButton);
-
-        int buttonWidth = 64;
-        int buttonHeight = 16;
 
         keyButton = Button.builder(Component.empty(), this::onListenKeyInput)
                 .bounds(categoryButton.getX() + categoryButton.getWidth() - buttonWidth,
@@ -181,8 +180,7 @@ public class AddChatKeybindScreen extends Screen {
         if (name.isEmpty())
             name = command;
 
-        ChatKeybind newBind = updateChatKeybindMap(categoryString, name, command);
-        newBind.keyMapping.setKey(key);
+        updateChatKeybindMap(categoryString, name, command, key);
         ConfigManager.saveConfig();
         onClose();
     }

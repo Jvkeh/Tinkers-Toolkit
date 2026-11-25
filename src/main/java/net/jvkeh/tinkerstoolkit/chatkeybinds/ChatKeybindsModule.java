@@ -39,17 +39,30 @@ public class ChatKeybindsModule {
             Minecraft.getInstance().player.connection.sendChat(msg);
     }
 
-    public static ChatKeybind updateChatKeybindMap(String categoryString, String name, String command) {
+    public static void updateChatKeybindMap(String categoryString, String name, String command, InputConstants.Key key) {
         ChatKeybind newBind;
         if (categoryString.equals("player")) {
-            newBind = new ChatKeybind(name, command, InputConstants.UNKNOWN, PLAYER_CATEGORY);
+            newBind = new ChatKeybind(name, command, key, PLAYER_CATEGORY);
         } else if (categoryString.equals("storyteller")) {
-            newBind = new ChatKeybind(name, command, InputConstants.UNKNOWN, STORYTELLER_CATEGORY);
+            newBind = new ChatKeybind(name, command, key, STORYTELLER_CATEGORY);
         } else {
-            newBind = new ChatKeybind(name, command, InputConstants.UNKNOWN, USERBINDS_CATEGORY);
+            newBind = new ChatKeybind(name, command, key, USERBINDS_CATEGORY);
         }
         chatKeybindMap.computeIfAbsent(categoryString, k -> new ArrayList<>()).add(newBind);
-        return newBind;
+        KeyMapping.resetMapping();
+    }
+
+    public static void updateChatKeybindMap(String categoryString, String name, String command, KeyMapping keyMapping) {
+        ChatKeybind newBind;
+        if (categoryString.equals("player")) {
+            newBind = new ChatKeybind(name, command, keyMapping);
+        } else if (categoryString.equals("storyteller")) {
+            newBind = new ChatKeybind(name, command, keyMapping);
+        } else {
+            newBind = new ChatKeybind(name, command, keyMapping);
+        }
+        chatKeybindMap.computeIfAbsent(categoryString, k -> new ArrayList<>()).add(newBind);
+        KeyMapping.resetMapping();
     }
 
     public void onInitialise() {

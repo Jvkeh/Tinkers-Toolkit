@@ -11,8 +11,9 @@
   "tinkerstoolkit.keybinds.addScreen.keybind": "Keybind",
   "tinkerstoolkit.keybinds.addScreen.add": "Add",
   "tinkerstoolkit.keybinds.addScreen.cancel": "Cancel",
+  "tinkerstoolkit.keybinds.menuScreen.title": "Chat Keybinds",
   "tinkerstoolkit.keybinds.menuScreen.done": "Done",
-  "tinkerstoolkit.keybinds.menuScreen.reload": "Reload Config",
-  "tinkerstoolkit.keybinds.menuScreen.new": "Add New",
+  "tinkerstoolkit.keybinds.menuScreen.reload": "Reload from Config",
+  "tinkerstoolkit.keybinds.menuScreen.new": "Add New Keybind",
   "tinkerstoolkit.keybinds.menuScreen.remove": "Remove Selected"
 }

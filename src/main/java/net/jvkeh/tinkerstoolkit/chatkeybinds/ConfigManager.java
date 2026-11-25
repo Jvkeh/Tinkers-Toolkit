@@ -1,6 +1,7 @@
 package net.jvkeh.tinkerstoolkit.chatkeybinds;
 
 import com.google.gson.*;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -8,10 +9,7 @@ import net.minecraft.client.Minecraft;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.*;
 
@@ -23,14 +21,18 @@ public class ConfigManager {
 
     static void loadConfig() {
         Minecraft mc = Minecraft.getInstance();
+        ArrayList<ChatKeybind> removedBinds = new ArrayList<>();
         if (chatKeybindMap != null && mc.options != null) {
             ArrayList<KeyMapping> keys = new ArrayList<>(Arrays.asList(mc.options.keyMappings));
             for (Map.Entry<String, ArrayList<ChatKeybind>> category : chatKeybindMap.entrySet()) {
                 for (ChatKeybind keybind : category.getValue()) {
-                    keys.remove(keybind.keyMapping);
+                    if (keys.remove(keybind.keyMapping)) {
+                        removedBinds.add(keybind);
+                    }
                 }
             }
             mc.options.keyMappings = keys.toArray(new KeyMapping[0]);
+            mc.options.save();
         }
         chatKeybindMap = new TreeMap<>();
 
@@ -41,16 +43,15 @@ public class ConfigManager {
             }
             String str = Files.readString(keybindsConfig);
             JsonObject jsonObject = JsonParser.parseString(str).getAsJsonObject();
-            addCategoryToMap("player", jsonObject);
-            addCategoryToMap("storyteller", jsonObject);
-            addCategoryToMap("userbinds", jsonObject);
-
+            addCategoryToMap("player", jsonObject, removedBinds);
+            addCategoryToMap("storyteller", jsonObject, removedBinds);
+            addCategoryToMap("userbinds", jsonObject, removedBinds);
         } catch (Exception e) {
             LOGGER.error("Failed to load config", e);
         }
     }
 
-    private static void addCategoryToMap(String categoryString, JsonObject jsonObject) {
+    private static void addCategoryToMap(String categoryString, JsonObject jsonObject, ArrayList<ChatKeybind> removedBinds) {
         JsonArray array = jsonObject.getAsJsonArray(categoryString);
         if (array == null) {
             return;
@@ -59,15 +60,33 @@ public class ConfigManager {
             if (element instanceof JsonObject jo) {
                 String name = jo.get("name").getAsString();
                 String command = jo.get("command").getAsString();
-                updateChatKeybindMap(categoryString, name, command);
+                Optional<ChatKeybind> match = removedBinds.stream()
+                        .filter(keybind -> keybind.name.equals(name) && keybind.command.equals(command))
+                        .findFirst();
+                if (match.isPresent()) {
+                    updateChatKeybindMap(categoryString, name, command, match.get().keyMapping);
+                } else {
+                    updateChatKeybindMap(categoryString, name, command, InputConstants.UNKNOWN);
+                }
             }
         }
     }
 
     static void saveConfig() {
+
+        class KeybindSerializer implements JsonSerializer<ChatKeybind> {
+
+            @Override
+            public JsonElement serialize(ChatKeybind keybind, Type typeOfSrc, JsonSerializationContext context) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.add("name", new JsonPrimitive(keybind.name));
+                jsonObject.add("command", new JsonPrimitive(keybind.command));
+                return jsonObject;
+            }
+        }
+
         Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(ChatKeybind.class, new KeybindSerializer()).create();
         String jsonString = gson.toJson(chatKeybindMap);
-        JsonObject jsonObject = new JsonObject();
         try {
             Files.createDirectories(configDir);
             Files.writeString(keybindsConfig, jsonString);
@@ -77,13 +96,4 @@ public class ConfigManager {
     }
 }
 
-class KeybindSerializer implements JsonSerializer<ChatKeybind> {
 
-    @Override
-    public JsonElement serialize(ChatKeybind keybind, Type typeOfSrc, JsonSerializationContext context) {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.add("name", new JsonPrimitive(keybind.name));
-        jsonObject.add("command", new JsonPrimitive(keybind.command));
-        return jsonObject;
-    }
-}
