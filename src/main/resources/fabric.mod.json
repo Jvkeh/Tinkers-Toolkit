@@ -3,9 +3,9 @@
   "id": "tinkerstoolkit",
   "version": "${version}",
   "name": "Tinker's Toolkit",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "description": "A companion mod for Sybillian's Blood on the Clocktower modpack",
   "authors": [
-    "Me!"
+    "Jvkeh"
   ],
   "contact": {
     "homepage": "https://fabricmc.net/",
@@ -17,6 +17,9 @@
   "entrypoints": {
     "main": [
       "net.jvkeh.tinkerstoolkit.TinkersToolkit"
+    ],
+    "modmenu": [
+      "net.jvkeh.tinkerstoolkit.ModMenuAPIImpl"
     ]
   },
   "depends": {

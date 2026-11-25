@@ -16,9 +16,20 @@ public class ChatKeybindsModule {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("tinkers-toolkit/chat-keybindsbinds");
     static final List<String> CATEGORY_STRINGS = Arrays.asList("userbinds", "storyteller", "player");
-    static HashMap<String, ArrayList<ChatKeybind>> chatKeybindMap = new HashMap<>();
-    static KeyMapping.Category CHAT_KEYBBINDS_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("tinkerstoolkit", "chatkeybinds"));
+    static final KeyMapping.Category CHAT_KEYBBINDS_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("tinkerstoolkit", "chatkeybinds"));
+
+    static final KeyMapping.Category USERBINDS_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("tinkerstoolkit", "userbinds"));
+    static final KeyMapping.Category PLAYER_CATEGORY = new KeyMapping.Category(Identifier.fromNamespaceAndPath("tinkerstoolkit", "player"));
+    static final KeyMapping.Category STORYTELLER_CATEGORY = new KeyMapping.Category(Identifier.fromNamespaceAndPath("tinkerstoolkit", "storyteller"));
+
+    static SortedMap<String, ArrayList<ChatKeybind>> chatKeybindMap = new TreeMap<>();
     static int currentCategoryIndex = 0;
+
+    public ChatKeybindsModule() {
+        int index = KeyMapping.Category.SORT_ORDER.indexOf(KeyMapping.Category.MOVEMENT) + 1;
+        KeyMapping.Category.SORT_ORDER.add(index, PLAYER_CATEGORY);
+        KeyMapping.Category.SORT_ORDER.add(index, STORYTELLER_CATEGORY);
+    }
 
     private static void sendMessage(String msg) {
         assert Minecraft.getInstance().player != null;
@@ -26,6 +37,19 @@ public class ChatKeybindsModule {
             Minecraft.getInstance().player.connection.sendCommand(msg.substring(1));
         } else
             Minecraft.getInstance().player.connection.sendChat(msg);
+    }
+
+    public static ChatKeybind updateChatKeybindMap(String categoryString, String name, String command) {
+        ChatKeybind newBind;
+        if (categoryString.equals("player")) {
+            newBind = new ChatKeybind(name, command, InputConstants.UNKNOWN, PLAYER_CATEGORY);
+        } else if (categoryString.equals("storyteller")) {
+            newBind = new ChatKeybind(name, command, InputConstants.UNKNOWN, STORYTELLER_CATEGORY);
+        } else {
+            newBind = new ChatKeybind(name, command, InputConstants.UNKNOWN, USERBINDS_CATEGORY);
+        }
+        chatKeybindMap.computeIfAbsent(categoryString, k -> new ArrayList<>()).add(newBind);
+        return newBind;
     }
 
     public void onInitialise() {

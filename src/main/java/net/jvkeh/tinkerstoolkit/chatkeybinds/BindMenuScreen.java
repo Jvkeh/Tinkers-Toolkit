@@ -2,7 +2,6 @@ package net.jvkeh.tinkerstoolkit.chatkeybinds;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.terraformersmc.modmenu.api.ModMenuApi;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -188,12 +187,12 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
                 String category = Component.translatable("key.category.tinkerstoolkit." + chatKeybind.keyMapping.getCategory().id().getPath()).getString();
                 graphics.text(client.font, Component.literal(chatKeybind.name), getX() + 8, getY() + 2, 0xFFFFFFFF);
                 graphics.text(client.font, Component.literal(chatKeybind.command), getX() + 8, getY() + 12, 0xFF888888);
-                graphics.text(client.font, Component.literal(category).withStyle(ChatFormatting.BOLD), getX() + 8, getY() + 22, 0xFF888888);
+                graphics.text(client.font, Component.literal(category), getX() + 8, getY() + 22, 0xFF888888);
 
-                keyButton.setX(getX() + this.getContentWidth() - 64 - 4);
+                keyButton.setX(getX() + this.getContentWidth() - 64);
                 keyButton.setY(getY() + 2);
                 keyButton.setWidth(64);
-                keyButton.setHeight(32);
+                keyButton.setHeight(24);
                 keyButton.extractRenderState(graphics, mouseX, mouseY, a);
             }
         }

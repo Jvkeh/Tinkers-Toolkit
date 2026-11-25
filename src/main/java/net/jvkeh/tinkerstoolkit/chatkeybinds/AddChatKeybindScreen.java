@@ -2,7 +2,6 @@ package net.jvkeh.tinkerstoolkit.chatkeybinds;
 
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.StringWidget;
@@ -12,10 +11,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NonNull;
-
-import java.util.ArrayList;
 
 import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.*;
 
@@ -37,19 +33,6 @@ public class AddChatKeybindScreen extends Screen {
     public AddChatKeybindScreen(Screen parent) {
         super(Component.empty());
         this.parent = parent;
-    }
-
-    static void addCategoryToScreen(String categoryString, KeyMapping.Category category) {
-        if (!KeyMapping.Category.SORT_ORDER.contains(category)) {
-            int index;
-            if (categoryString.equals("userbinds")) {
-                index = KeyMapping.Category.SORT_ORDER.indexOf(CHAT_KEYBBINDS_CATEGORY) + 1;
-            } else {
-                index = KeyMapping.Category.SORT_ORDER.indexOf(KeyMapping.Category.MOVEMENT) + 1;
-            }
-            KeyMapping.Category.SORT_ORDER.add(index, category);
-
-        }
     }
 
     @Override
@@ -192,19 +175,14 @@ public class AddChatKeybindScreen extends Screen {
             String[] splitCategory = ((TranslatableContents) categoryContents).getKey().split("\\.");
             categoryString = splitCategory[splitCategory.length - 1];
         }
-        KeyMapping.Category category;
-
         if (command.isEmpty())
             return;
 
         if (name.isEmpty())
             name = command;
 
-        category = new KeyMapping.Category(
-                Identifier.fromNamespaceAndPath("tinkerstoolkit", categoryString));
-
-        addCategoryToScreen(categoryString, category);
-        chatKeybindMap.computeIfAbsent(categoryString, k -> new ArrayList<>()).add(new ChatKeybind(name, command, key, category));
+        ChatKeybind newBind = updateChatKeybindMap(categoryString, name, command);
+        newBind.keyMapping.setKey(key);
         ConfigManager.saveConfig();
         onClose();
     }

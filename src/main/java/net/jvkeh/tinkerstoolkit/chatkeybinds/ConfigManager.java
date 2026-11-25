@@ -1,22 +1,19 @@
 package net.jvkeh.tinkerstoolkit.chatkeybinds;
 
 import com.google.gson.*;
-import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.Identifier;
 
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
-import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.LOGGER;
-import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.chatKeybindMap;
+import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.*;
 
 
 public class ConfigManager {
@@ -35,7 +32,7 @@ public class ConfigManager {
             }
             mc.options.keyMappings = keys.toArray(new KeyMapping[0]);
         }
-        chatKeybindMap = new HashMap<>();
+        chatKeybindMap = new TreeMap<>();
 
         try {
             Files.createDirectories(configDir);
@@ -62,11 +59,7 @@ public class ConfigManager {
             if (element instanceof JsonObject jo) {
                 String name = jo.get("name").getAsString();
                 String command = jo.get("command").getAsString();
-                KeyMapping.Category category = new KeyMapping.Category(
-                        Identifier.fromNamespaceAndPath("tinkerstoolkit", categoryString));
-
-                AddChatKeybindScreen.addCategoryToScreen(categoryString, category);
-                chatKeybindMap.computeIfAbsent(categoryString, k -> new ArrayList<>()).add(new ChatKeybind(name, command, InputConstants.UNKNOWN, category));
+                updateChatKeybindMap(categoryString, name, command);
             }
         }
     }
