@@ -7,13 +7,16 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.LOGGER;
-import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.chatKeybinds;
+import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.chatKeybindMap;
 
 
 public class ConfigManager {
@@ -23,64 +26,71 @@ public class ConfigManager {
 
     static void loadConfig() {
         Minecraft mc = Minecraft.getInstance();
-        if (chatKeybinds != null && mc.options != null) {
+        if (chatKeybindMap != null && mc.options != null) {
             ArrayList<KeyMapping> keys = new ArrayList<>(Arrays.asList(mc.options.keyMappings));
-            for (ChatKeybind chatKeybind : chatKeybinds)
-                keys.remove(chatKeybind.keyMapping);
+            for (Map.Entry<String, ArrayList<ChatKeybind>> category : chatKeybindMap.entrySet()) {
+                for (ChatKeybind keybind : category.getValue()) {
+                    keys.remove(keybind.keyMapping);
+                }
+            }
             mc.options.keyMappings = keys.toArray(new KeyMapping[0]);
         }
-        chatKeybinds = new ArrayList<>();
+        chatKeybindMap = new HashMap<>();
 
         try {
             Files.createDirectories(configDir);
             if (!Files.exists(keybindsConfig)) {
                 return;
             }
-
             String str = Files.readString(keybindsConfig);
-            JsonArray ja = (JsonArray) JsonParser.parseString(str);
+            JsonObject jsonObject = JsonParser.parseString(str).getAsJsonObject();
+            addCategoryToMap("player", jsonObject);
+            addCategoryToMap("storyteller", jsonObject);
+            addCategoryToMap("userbinds", jsonObject);
 
-            for (JsonElement je : ja) {
-                if (je instanceof JsonObject jo) {
-
-                    String name = jo.get("name").getAsString();
-                    String command = jo.get("command").getAsString();
-
-                    KeyMapping.Category category = new KeyMapping.Category(
-                            Identifier.fromNamespaceAndPath(
-                                    "tinkerstoolkit",
-                                    jo.get("category").getAsString()
-                            )
-                    );
-                    if (!KeyMapping.Category.SORT_ORDER.contains(category)) {
-                        int index = KeyMapping.Category.SORT_ORDER.indexOf(KeyMapping.Category.MULTIPLAYER);
-                        KeyMapping.Category.SORT_ORDER.add(index, category);
-                    }
-                    chatKeybinds.add(new ChatKeybind(name, command, InputConstants.UNKNOWN, category).registerCommand());
-                }
-            }
         } catch (Exception e) {
             LOGGER.error("Failed to load config", e);
         }
     }
 
-    static void saveConfig() {
-        JsonArray ja = new JsonArray();
-        for (ChatKeybind chatKeybind : chatKeybinds) {
-            JsonObject jo = new JsonObject();
-            jo.add("category", new JsonPrimitive(chatKeybind.keyMapping.getCategory().id().getPath()));
-            jo.add("name", new JsonPrimitive(chatKeybind.name));
-            jo.add("command", new JsonPrimitive(chatKeybind.command));
-            ja.add(jo);
+    private static void addCategoryToMap(String categoryString, JsonObject jsonObject) {
+        JsonArray array = jsonObject.getAsJsonArray(categoryString);
+        if (array == null) {
+            return;
         }
+        for (JsonElement element : array) {
+            if (element instanceof JsonObject jo) {
+                String name = jo.get("name").getAsString();
+                String command = jo.get("command").getAsString();
+                KeyMapping.Category category = new KeyMapping.Category(
+                        Identifier.fromNamespaceAndPath("tinkerstoolkit", categoryString));
 
-        String json = new Gson().toJson(ja);
+                AddChatKeybindScreen.addCategoryToScreen(categoryString, category);
+                chatKeybindMap.computeIfAbsent(categoryString, k -> new ArrayList<>()).add(new ChatKeybind(name, command, InputConstants.UNKNOWN, category));
+            }
+        }
+    }
 
+    static void saveConfig() {
+        Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(ChatKeybind.class, new KeybindSerializer()).create();
+        String jsonString = gson.toJson(chatKeybindMap);
+        JsonObject jsonObject = new JsonObject();
         try {
             Files.createDirectories(configDir);
-            Files.writeString(keybindsConfig, json);
+            Files.writeString(keybindsConfig, jsonString);
         } catch (Exception e) {
             LOGGER.error("Failed to save config", e);
         }
+    }
+}
+
+class KeybindSerializer implements JsonSerializer<ChatKeybind> {
+
+    @Override
+    public JsonElement serialize(ChatKeybind keybind, Type typeOfSrc, JsonSerializationContext context) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.add("name", new JsonPrimitive(keybind.name));
+        jsonObject.add("command", new JsonPrimitive(keybind.command));
+        return jsonObject;
     }
 }

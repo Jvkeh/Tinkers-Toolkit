@@ -21,18 +21,7 @@ public class ChatKeybind {
                 InputConstants.Type.KEYBOARD,
                 key.getValue(),
                 category);
-    }
 
-    ChatKeybind removeCommand() {
-
-        Minecraft mc = Minecraft.getInstance();
-        ArrayList<KeyMapping> keys = new ArrayList<>(Arrays.asList(mc.options.keyMappings));
-        keys.remove(this.keyMapping);
-        mc.options.keyMappings = keys.toArray(new KeyMapping[0]);
-        return this;
-    }
-
-    public ChatKeybind registerCommand() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.options != null) {
             ArrayList<KeyMapping> keys = new ArrayList<>(Arrays.asList(mc.options.keyMappings));
@@ -40,7 +29,13 @@ public class ChatKeybind {
             mc.options.keyMappings = keys.toArray(new KeyMapping[0]);
         } else
             KeyMappingHelper.registerKeyMapping(this.keyMapping);
-        return this;
     }
 
+    void removeCommand() {
+
+        Minecraft mc = Minecraft.getInstance();
+        ArrayList<KeyMapping> keys = new ArrayList<>(Arrays.asList(mc.options.keyMappings));
+        keys.remove(this.keyMapping);
+        mc.options.keyMappings = keys.toArray(new KeyMapping[0]);
+    }
 }

@@ -9,14 +9,16 @@ import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.util.*;
 
 
 public class ChatKeybindsModule {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("tinkers-toolkit/chat-keybindsbinds");
-    static ArrayList<ChatKeybind> chatKeybinds = new ArrayList<>();
+    static final List<String> CATEGORY_STRINGS = Arrays.asList("userbinds", "storyteller", "player");
+    static HashMap<String, ArrayList<ChatKeybind>> chatKeybindMap = new HashMap<>();
     static KeyMapping.Category CHAT_KEYBBINDS_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("tinkerstoolkit", "chatkeybinds"));
+    static int currentCategoryIndex = 0;
 
     private static void sendMessage(String msg) {
         assert Minecraft.getInstance().player != null;
@@ -43,12 +45,14 @@ public class ChatKeybindsModule {
                 client.gui.setScreen(new BindMenuScreen(null));
             }
             if (addChatKeybind.consumeClick()) {
-                client.gui.setScreen(new AddChatKeybindScreen("", null));
+                client.gui.setScreen(new AddChatKeybindScreen(null));
             }
 
-            for (ChatKeybind keybind : chatKeybinds)
-                if (keybind.keyMapping.consumeClick())
-                    sendMessage(keybind.command);
+            for (Map.Entry<String, ArrayList<ChatKeybind>> category : chatKeybindMap.entrySet())
+                for (ChatKeybind keybind : category.getValue()) {
+                    if (keybind.keyMapping.consumeClick())
+                        sendMessage(keybind.command);
+                }
         });
         ConfigManager.loadConfig();
     }

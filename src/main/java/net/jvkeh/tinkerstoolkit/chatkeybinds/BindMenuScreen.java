@@ -2,6 +2,7 @@ package net.jvkeh.tinkerstoolkit.chatkeybinds;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.terraformersmc.modmenu.api.ModMenuApi;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -14,7 +15,10 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 
-import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.chatKeybinds;
+import java.util.ArrayList;
+import java.util.Map;
+
+import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.chatKeybindMap;
 
 
 public class BindMenuScreen extends Screen implements ModMenuApi {
@@ -39,7 +43,7 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
         int padding = 8;
         int buttonHeight = 32;
 
-        list = new BindList(this, width - sideBarW, height);
+        list = new BindList(this, width - sideBarW, height - 4);
         list.updateEntries();
         addRenderableWidget(list);
 
@@ -66,14 +70,14 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
     }
 
     void onAdd(Button w) {
-        this.minecraft.gui.setScreen(new AddChatKeybindScreen("", this));
+        this.minecraft.gui.setScreen(new AddChatKeybindScreen(this));
     }
 
     void onRemove(Button w) {
         BindList.Entry entry = list.getSelected();
         if (entry != null) {
             entry.chatKeybind.removeCommand();
-            chatKeybinds.remove(entry.chatKeybind);
+            chatKeybindMap.get(entry.chatKeybind.keyMapping.getCategory().id().getPath()).remove(entry.chatKeybind);
             ConfigManager.saveConfig();
             list.updateEntries();
         }
@@ -127,17 +131,19 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
         public BindMenuScreen parent;
 
         public BindList(BindMenuScreen parent, int w, int h) {
-            super(parent.minecraft, w, h, 0, 32);
+            super(parent.minecraft, w, h, 2, 32);
             this.parent = parent;
             updateEntries();
         }
 
         public void updateEntries() {
             this.clearEntries();
-            for (ChatKeybind keybind : chatKeybinds) {
-                Entry e = new Entry(minecraft, keybind, this);
-                addEntry(e);
-                setSelected(e);
+            for (Map.Entry<String, ArrayList<ChatKeybind>> category : chatKeybindMap.entrySet()) {
+                for (ChatKeybind keybind : category.getValue()) {
+                    Entry e = new Entry(minecraft, keybind, this);
+                    addEntry(e);
+                    setSelected(e);
+                }
             }
         }
 
@@ -179,13 +185,15 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
 
             @Override
             public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
-                graphics.text(client.font, Component.literal(chatKeybind.name), getX() + 8, getY() + 6, 0xFFFFFFFF);
-                graphics.text(client.font, Component.literal(chatKeybind.command), getX() + 8, getY() + 18, 0xFF888888);
+                String category = Component.translatable("key.category.tinkerstoolkit." + chatKeybind.keyMapping.getCategory().id().getPath()).getString();
+                graphics.text(client.font, Component.literal(chatKeybind.name), getX() + 8, getY() + 2, 0xFFFFFFFF);
+                graphics.text(client.font, Component.literal(chatKeybind.command), getX() + 8, getY() + 12, 0xFF888888);
+                graphics.text(client.font, Component.literal(category).withStyle(ChatFormatting.BOLD), getX() + 8, getY() + 22, 0xFF888888);
 
                 keyButton.setX(getX() + this.getContentWidth() - 64 - 4);
                 keyButton.setY(getY() + 2);
                 keyButton.setWidth(64);
-                keyButton.setHeight(this.getContentHeight());
+                keyButton.setHeight(32);
                 keyButton.extractRenderState(graphics, mouseX, mouseY, a);
             }
         }

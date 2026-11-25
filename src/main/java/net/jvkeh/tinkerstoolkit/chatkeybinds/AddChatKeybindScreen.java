@@ -10,16 +10,20 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentContents;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NonNull;
 
-import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.chatKeybinds;
+import java.util.ArrayList;
+
+import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.*;
 
 
 public class AddChatKeybindScreen extends Screen {
     EditBox nameBox;
     EditBox commandBox;
-    EditBox categoryBox;
+    Button categoryButton;
 
     Button keyButton;
     Button addButton;
@@ -27,30 +31,32 @@ public class AddChatKeybindScreen extends Screen {
 
     Screen parent;
 
-    String cmd;
     InputConstants.Key key = InputConstants.UNKNOWN;
     boolean listening;
 
-    public AddChatKeybindScreen(String cmd_, Screen parent) {
+    public AddChatKeybindScreen(Screen parent) {
         super(Component.empty());
-        cmd = cmd_;
         this.parent = parent;
+    }
+
+    static void addCategoryToScreen(String categoryString, KeyMapping.Category category) {
+        if (!KeyMapping.Category.SORT_ORDER.contains(category)) {
+            int index;
+            if (categoryString.equals("userbinds")) {
+                index = KeyMapping.Category.SORT_ORDER.indexOf(CHAT_KEYBBINDS_CATEGORY) + 1;
+            } else {
+                index = KeyMapping.Category.SORT_ORDER.indexOf(KeyMapping.Category.MOVEMENT) + 1;
+            }
+            KeyMapping.Category.SORT_ORDER.add(index, category);
+
+        }
     }
 
     @Override
     protected void init() {
-        StringWidget categoryText = new StringWidget(Component.translatable("tinkerstoolkit.keybinds.addScreen.category"), minecraft.font);
-        categoryText.setX(width / 4);
-        categoryText.setY((height / 2) - 96);
-        addRenderableOnly(categoryText);
-
-        categoryBox = new EditBox(minecraft.font, width / 2, 24, Component.empty());
-        categoryBox.setPosition(width / 2 - (categoryBox.getWidth() / 2), categoryText.getY() + categoryText.getHeight());
-        addRenderableWidget(categoryBox);
-
         StringWidget nameText = new StringWidget(Component.translatable("tinkerstoolkit.keybinds.addScreen.name"), minecraft.font);
         nameText.setX(width / 4);
-        nameText.setY(categoryBox.getY() + categoryBox.getHeight() + 4);
+        nameText.setY((height / 2) - 96);
         addRenderableOnly(nameText);
 
         nameBox = new EditBox(minecraft.font, width / 2, 24, Component.empty());
@@ -63,18 +69,29 @@ public class AddChatKeybindScreen extends Screen {
         addRenderableOnly(commandText);
 
         commandBox = new EditBox(minecraft.font, width / 2, 24, Component.empty());
-        categoryBox.setResponder(this::onCommandChanged);
-        nameBox.setResponder(this::onCommandChanged);
         commandBox.setPosition(width / 2 - (commandBox.getWidth() / 2), commandText.getY() + commandText.getHeight());
         addRenderableWidget(commandBox);
         this.setInitialFocus(commandBox);
 
+        StringWidget categoryText = new StringWidget(Component.translatable("tinkerstoolkit.keybinds.addScreen.category"), minecraft.font);
+        categoryText.setX(width / 4);
+        categoryText.setY(commandBox.getY() + commandBox.getHeight() + 4);
+        addRenderableOnly(categoryText);
+
+        categoryButton = Button.builder(Component.translatable("key.category.tinkerstoolkit." + CATEGORY_STRINGS.get(currentCategoryIndex)), this::onListenCategoryInput)
+                .bounds(commandBox.getX(),
+                        categoryText.getY() + categoryText.getHeight(),
+                        width / 2,
+                        24)
+                .build();
+        addRenderableWidget(categoryButton);
+
         int buttonWidth = 64;
         int buttonHeight = 16;
 
-        keyButton = Button.builder(Component.empty(), this::onListenButton)
-                .bounds(commandBox.getX() + commandBox.getWidth() - buttonWidth,
-                        commandBox.getY() + commandBox.getHeight() + 6,
+        keyButton = Button.builder(Component.empty(), this::onListenKeyInput)
+                .bounds(categoryButton.getX() + categoryButton.getWidth() - buttonWidth,
+                        categoryButton.getY() + categoryButton.getHeight() + 6,
                         buttonWidth,
                         buttonHeight)
                 .build();
@@ -103,9 +120,22 @@ public class AddChatKeybindScreen extends Screen {
         addRenderableWidget(cancelButton);
     }
 
-    void onListenButton(Button b) {
+    void onListenKeyInput(Button b) {
         listening = true;
         updateKeyText();
+    }
+
+    void onListenCategoryInput(Button b) {
+        cycleCategory();
+    }
+
+    private void cycleCategory() {
+        if (currentCategoryIndex == 2) {
+            currentCategoryIndex = 0;
+        } else {
+            currentCategoryIndex++;
+        }
+        categoryButton.setMessage(Component.translatable("key.category.tinkerstoolkit." + CATEGORY_STRINGS.get(currentCategoryIndex)));
     }
 
     public boolean keyPressed(@NonNull KeyEvent event) {
@@ -145,10 +175,6 @@ public class AddChatKeybindScreen extends Screen {
             keyButton.setMessage(key.getDisplayName());
     }
 
-    void onCommandChanged(String c) {
-        cmd = c;
-    }
-
     void onAdd(Button b) {
         add();
     }
@@ -160,27 +186,25 @@ public class AddChatKeybindScreen extends Screen {
     void add() {
         String command = commandBox.getValue().strip();
         String name = nameBox.getValue().strip();
-        String categoryString = categoryBox.getValue().strip().toLowerCase();
+        String categoryString = "userbinds";
+        ComponentContents categoryContents = categoryButton.getMessage().getContents();
+        if (categoryContents instanceof TranslatableContents) {
+            String[] splitCategory = ((TranslatableContents) categoryContents).getKey().split("\\.");
+            categoryString = splitCategory[splitCategory.length - 1];
+        }
         KeyMapping.Category category;
 
         if (command.isEmpty())
             return;
 
         if (name.isEmpty())
-            name = cmd;
+            name = command;
 
-        if (categoryString.isEmpty()) {
-            category = new KeyMapping.Category(
-                    Identifier.fromNamespaceAndPath("tinkerstoolkit", "userbinds"));
-        } else {
-            category = new KeyMapping.Category(
-                    Identifier.fromNamespaceAndPath("tinkerstoolkit", categoryString));
-            if (!KeyMapping.Category.SORT_ORDER.contains(category)) {
-                int index = KeyMapping.Category.SORT_ORDER.indexOf(KeyMapping.Category.MOVEMENT);
-                KeyMapping.Category.SORT_ORDER.add(index, category);
-            }
-        }
-        chatKeybinds.add(new ChatKeybind(name, command, key, category).registerCommand());
+        category = new KeyMapping.Category(
+                Identifier.fromNamespaceAndPath("tinkerstoolkit", categoryString));
+
+        addCategoryToScreen(categoryString, category);
+        chatKeybindMap.computeIfAbsent(categoryString, k -> new ArrayList<>()).add(new ChatKeybind(name, command, key, category));
         ConfigManager.saveConfig();
         onClose();
     }
