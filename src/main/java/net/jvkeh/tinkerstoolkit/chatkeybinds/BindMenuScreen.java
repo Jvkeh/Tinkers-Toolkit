@@ -7,8 +7,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
-import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
+import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -23,60 +24,46 @@ import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.chatKeybi
 
 public class BindMenuScreen extends Screen implements ModMenuApi {
     public BindList.Entry bindKeySelected;
+    HeaderAndFooterLayout layout;
     Screen parent;
     BindList list;
-    StringWidget screenTitle;
-    Button doneButton;
-    Button reloadButton;
-    Button addButton;
     Button removeButton;
 
-    public BindMenuScreen(Screen parent) {
-        super(Component.empty());
+    public BindMenuScreen(final Screen parent) {
+        super(Component.translatable("tinkerstoolkit.keybinds.menuScreen.title"));
         this.parent = parent;
     }
 
     @Override
     protected void init() {
-        this.clearWidgets();
-        int padding = 8;
-        int buttonHeight = 20;
-        int buttonWidth = 150;
+        layout = new HeaderAndFooterLayout(this, 33, 60);
+        this.layout.addTitleHeader(this.title, this.font);
 
-        Component title = Component.translatable("tinkerstoolkit.keybinds.menuScreen.title");
-        int textWidth = this.font.width(title);
-        screenTitle = new StringWidget(title, minecraft.font);
-        screenTitle.setX(width / 2 - (textWidth / 2));
-        screenTitle.setY(12);
-        addRenderableOnly(screenTitle);
+        list = this.layout.addToContents(new BindList(this, this.width, this.layout.getContentHeight(), this.layout.getHeaderHeight(), 32));
 
-        list = new BindList(this, width, height - 64 - padding * 2 - screenTitle.getHeight());
-        list.updateEntries();
-        addRenderableWidget(list);
+        LinearLayout footer = this.layout.addToFooter(LinearLayout.vertical().spacing(4));
+        footer.defaultCellSetting().alignHorizontallyCenter();
+        LinearLayout topFooterButtons = footer.addChild(LinearLayout.horizontal().spacing(4));
+        LinearLayout bottomFooterButtons = footer.addChild(LinearLayout.horizontal().spacing(4));
 
-        addButton = Button.builder(Component.translatable("tinkerstoolkit.keybinds.menuScreen.new"), this::onAdd)
-                .bounds(list.getX() + list.getWidth() / 2 - (buttonWidth + padding), list.getHeight() + list.getY() + padding, buttonWidth, buttonHeight)
-                .build();
-        addRenderableWidget(addButton);
-
-        reloadButton = Button.builder(Component.translatable("tinkerstoolkit.keybinds.menuScreen.reload"), this::onReload)
-                .bounds(addButton.getX(), addButton.getY() + addButton.getHeight() + padding / 2, addButton.getWidth(), buttonHeight)
-                .build();
-        addRenderableWidget(reloadButton);
-
-        removeButton = Button.builder(Component.translatable("tinkerstoolkit.keybinds.menuScreen.remove"), this::onRemove)
-                .bounds(list.getX() + list.getWidth() / 2 + padding / 2, addButton.getY(), reloadButton.getWidth(), buttonHeight)
-                .build();
+        topFooterButtons.addChild(Button.builder(Component.translatable("tinkerstoolkit.keybinds.menuScreen.new"), this::onAdd)
+                .width(150)
+                .build());
+        removeButton = topFooterButtons.addChild(Button.builder(Component.translatable("tinkerstoolkit.keybinds.menuScreen.remove"), this::onRemove)
+                .width(150)
+                .build());
         removeButton.active = false;
-        addRenderableWidget(removeButton);
 
-        doneButton = Button.builder(Component.translatable("tinkerstoolkit.keybinds.menuScreen.done"), this::onClose)
-                .bounds(removeButton.getX(), reloadButton.getY(), removeButton.getWidth(), buttonHeight)
-                .build();
+        bottomFooterButtons.addChild(Button.builder(Component.translatable("tinkerstoolkit.keybinds.menuScreen.reload"), this::onReload)
+                .width(150)
+                .build());
 
-        addRenderableWidget(doneButton);
+        bottomFooterButtons.addChild(Button.builder(Component.translatable("tinkerstoolkit.keybinds.menuScreen.done"), this::onClose)
+                .width(150)
+                .build());
 
-
+        this.layout.arrangeElements();
+        this.layout.visitWidgets(this::addRenderableWidget);
     }
 
     void onAdd(Button w) {
@@ -87,14 +74,13 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
         BindList.Entry entry = list.getSelected();
         if (entry != null) {
             entry.chatKeybind.removeCommand();
-            chatKeybindMap.forEach((key, array) -> {
-                array.removeIf(keybind ->
-                        keybind.name.equals(entry.chatKeybind.name) &&
-                                keybind.command.equals(entry.chatKeybind.command) &&
-                                keybind.keyMapping.same(entry.chatKeybind.keyMapping));
-            });
+            chatKeybindMap.forEach((_, array) -> array.removeIf(keybind ->
+                    keybind.name.equals(entry.chatKeybind.name) &&
+                            keybind.command.equals(entry.chatKeybind.command) &&
+                            keybind.keyMapping.same(entry.chatKeybind.keyMapping)));
             ConfigManager.saveConfig();
             list.updateEntries();
+            removeButton.active = false;
         }
     }
 
@@ -147,9 +133,9 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
         static int padding = 8;
         public BindMenuScreen parent;
 
-        public BindList(BindMenuScreen parent, int w, int h) {
-            super(parent.minecraft, w, h, 0, 32);
-            this.setY(parent.screenTitle.getY() + parent.screenTitle.getHeight() + padding);
+        public BindList(BindMenuScreen parent, int width, int height, int y, int itemHeight) {
+            super(parent.minecraft, width, height, y, itemHeight);
+            this.setY(parent.layout.getY() + parent.layout.getHeaderHeight() + padding);
             this.parent = parent;
             updateEntries();
         }
@@ -169,7 +155,7 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
             }
         }
 
-        static class Entry extends ObjectSelectionList.Entry<Entry> implements GuiEventListener {
+        public static class Entry extends ObjectSelectionList.Entry<Entry> implements GuiEventListener {
             public ChatKeybind chatKeybind;
             Minecraft client;
             BindList parent;

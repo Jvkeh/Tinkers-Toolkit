@@ -74,17 +74,6 @@ public class ConfigManager {
 
     static void saveConfig() {
 
-        class KeybindSerializer implements JsonSerializer<ChatKeybind> {
-
-            @Override
-            public JsonElement serialize(ChatKeybind keybind, Type typeOfSrc, JsonSerializationContext context) {
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.add("name", new JsonPrimitive(keybind.name));
-                jsonObject.add("command", new JsonPrimitive(keybind.command));
-                return jsonObject;
-            }
-        }
-
         Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(ChatKeybind.class, new KeybindSerializer()).create();
         String jsonString = gson.toJson(chatKeybindMap);
         try {
@@ -92,6 +81,17 @@ public class ConfigManager {
             Files.writeString(keybindsConfig, jsonString);
         } catch (Exception e) {
             LOGGER.error("Failed to save config", e);
+        }
+    }
+
+    private static class KeybindSerializer implements JsonSerializer<ChatKeybind> {
+
+        @Override
+        public JsonElement serialize(ChatKeybind keybind, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.add("name", new JsonPrimitive(keybind.name));
+            jsonObject.add("command", new JsonPrimitive(keybind.command));
+            return jsonObject;
         }
     }
 }
