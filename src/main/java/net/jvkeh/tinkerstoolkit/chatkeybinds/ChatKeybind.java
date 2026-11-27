@@ -34,8 +34,7 @@ public class ChatKeybind {
     void registerKeybind() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.options != null) {
-            ArrayList<KeyMapping> keys = new ArrayList<>();
-            keys.addAll(Arrays.asList(mc.options.keyMappings));
+            ArrayList<KeyMapping> keys = new ArrayList<>(Arrays.asList(mc.options.keyMappings));
             keys.add(this.keyMapping);
             mc.options.keyMappings = keys.toArray(new KeyMapping[0]);
             mc.options.save();

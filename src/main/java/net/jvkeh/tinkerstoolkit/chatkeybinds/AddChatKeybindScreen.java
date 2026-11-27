@@ -2,185 +2,95 @@ package net.jvkeh.tinkerstoolkit.chatkeybinds;
 
 
 import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentContents;
-import net.minecraft.network.chat.contents.TranslatableContents;
 import org.jspecify.annotations.NonNull;
 
-import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.*;
+import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.KeybindCategory;
+import static net.jvkeh.tinkerstoolkit.chatkeybinds.ChatKeybindsModule.updateChatKeybindMap;
 
 
 public class AddChatKeybindScreen extends Screen {
     EditBox nameBox;
     EditBox commandBox;
-    Button categoryButton;
-
-    Button keyButton;
+    CycleButton<KeybindCategory> categoryButton;
     Button addButton;
-    Button cancelButton;
-
     Screen parent;
+    private int widgetX;
 
-    InputConstants.Key key = InputConstants.UNKNOWN;
-    boolean listening;
 
     public AddChatKeybindScreen(Screen parent) {
-        super(Component.empty());
+        super(Component.translatable("tinkerstoolkit.keybinds.addScreen.title"));
         this.parent = parent;
     }
 
     @Override
-    protected void init() {
-        int buttonWidth = 80;
-        int buttonHeight = 20;
-        StringWidget nameText = new StringWidget(Component.translatable("tinkerstoolkit.keybinds.addScreen.name"), minecraft.font);
-        nameText.setX(width / 4);
-        nameText.setY((height / 2) - 96);
-        addRenderableOnly(nameText);
-
-        nameBox = new EditBox(minecraft.font, width / 2, buttonHeight, Component.empty());
-        nameBox.setPosition(width / 2 - (nameBox.getWidth() / 2), nameText.getY() + 2 + nameText.getHeight());
-        addRenderableWidget(nameBox);
-
-        StringWidget commandText = new StringWidget(Component.translatable("tinkerstoolkit.keybinds.addScreen.command"), minecraft.font);
-        commandText.setX(width / 4);
-        commandText.setY(nameBox.getY() + nameBox.getHeight() + 4);
-        addRenderableOnly(commandText);
-
-        commandBox = new EditBox(minecraft.font, width / 2, buttonHeight, Component.empty());
-        commandBox.setPosition(width / 2 - (commandBox.getWidth() / 2), commandText.getY() + 2 + commandText.getHeight());
-        addRenderableWidget(commandBox);
-        this.setInitialFocus(commandBox);
-
-        StringWidget categoryText = new StringWidget(Component.translatable("tinkerstoolkit.keybinds.addScreen.category"), minecraft.font);
-        categoryText.setX(width / 4);
-        categoryText.setY(commandBox.getY() + commandBox.getHeight() + 4);
-        addRenderableOnly(categoryText);
-
-        categoryButton = Button.builder(Component.translatable("key.category.tinkerstoolkit." + CATEGORY_STRINGS.get(currentCategoryIndex)), this::onListenCategoryInput)
-                .bounds(commandBox.getX(),
-                        categoryText.getY() + 2 + categoryText.getHeight(),
-                        width / 2,
-                        buttonHeight)
-                .build();
-        addRenderableWidget(categoryButton);
-
-        keyButton = Button.builder(Component.empty(), this::onListenKeyInput)
-                .bounds(categoryButton.getX() + categoryButton.getWidth() - buttonWidth,
-                        categoryButton.getY() + categoryButton.getHeight() + 6,
-                        buttonWidth,
-                        buttonHeight)
-                .build();
-        addRenderableWidget(keyButton);
-        updateKeyText();
-
-        StringWidget keyText = new StringWidget(Component.translatable("tinkerstoolkit.keybinds.addScreen.keybind"), minecraft.font);
-        keyText.setX(keyButton.getX() - keyText.getWidth() - 2);
-        keyText.setY(keyButton.getY() + (keyButton.getHeight() / 2) - (keyText.getHeight() / 2));
-        addRenderableOnly(keyText);
-
-        addButton = Button.builder(Component.translatable("tinkerstoolkit.keybinds.addScreen.add"), this::onAdd)
-                .bounds(keyButton.getX(),
-                        keyButton.getY() + keyButton.getHeight() + 6,
-                        buttonWidth,
-                        buttonHeight)
-                .build();
-        addRenderableWidget(addButton);
-
-        cancelButton = Button.builder(Component.translatable("tinkerstoolkit.keybinds.addScreen.cancel"), this::onCancel)
-                .bounds(addButton.getX() - buttonWidth - 2,
-                        addButton.getY(),
-                        buttonWidth,
-                        buttonHeight)
-                .build();
-        addRenderableWidget(cancelButton);
-    }
-
-    void onListenKeyInput(Button b) {
-        listening = true;
-        updateKeyText();
-    }
-
-    void onListenCategoryInput(Button b) {
-        cycleCategory();
-    }
-
-    private void cycleCategory() {
-        if (currentCategoryIndex == 2) {
-            currentCategoryIndex = 0;
-        } else {
-            currentCategoryIndex++;
-        }
-        categoryButton.setMessage(Component.translatable("key.category.tinkerstoolkit." + CATEGORY_STRINGS.get(currentCategoryIndex)));
-    }
-
-    public boolean keyPressed(@NonNull KeyEvent event) {
-        if (listening) {
-            if (event.isEscape()) {
-                key = InputConstants.UNKNOWN;
-            } else {
-                key = InputConstants.getKey(event);
-            }
-            listening = false;
-            updateKeyText();
-            return true;
-        }
-
-        if (event.key() == InputConstants.KEY_RETURN || event.key() == InputConstants.KEY_NUMPADENTER) {
-            add();
-            return true;
-        }
-        return super.keyPressed(event);
+    public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        super.extractRenderState(graphics, mouseX, mouseY, a);
+        // TITLE
+        graphics.centeredText(this.font, this.title, this.width / 2, 17, 0xFFFFFFFF);
+        // NAME TEXT
+        graphics.text(this.font, Component.translatable("tinkerstoolkit.keybinds.addScreen.name"), widgetX + 1, 53, 0xFFA0A0A0);
+        // COMMAND TEXT
+        graphics.text(this.font, Component.translatable("tinkerstoolkit.keybinds.addScreen.command"), widgetX + 1, 94, 0xFFA0A0A0);
+        // CATEGORY TEXT
+        graphics.text(this.font, Component.translatable("tinkerstoolkit.keybinds.addScreen.category"), widgetX + 1, 135, 0xFFA0A0A0);
     }
 
     @Override
-    public boolean mouseClicked(@NonNull MouseButtonEvent event, boolean doubleClick) {
-        if (listening) {
-            key = InputConstants.Type.MOUSE.getOrCreate(event.button());
-            listening = false;
-            updateKeyText();
-            return true;
-        }
-        return super.mouseClicked(event, doubleClick);
+    protected void init() {
+        widgetX = this.width / 2 - 100;
+        int widgetWidth = 200;
+        int widgetHeight = 20;
+        nameBox = new EditBox(this.font, widgetX, 66, widgetWidth, widgetHeight, Component.empty());
+        addRenderableWidget(nameBox);
+
+        commandBox = new EditBox(this.font, widgetX, nameBox.getY() + 40, widgetWidth, widgetHeight, Component.empty());
+        commandBox.setResponder(this::onAddButtonUpdate);
+        addRenderableWidget(commandBox);
+        this.setInitialFocus(commandBox);
+        categoryButton = CycleButton.builder(KeybindCategory::getName, ChatKeybindsModule.getKeybindCategory())
+                .withValues(KeybindCategory.values())
+                .create(
+                        widgetX,
+                        commandBox.getY() + 40,
+                        widgetWidth,
+                        widgetHeight,
+                        Component.translatable("tinkerstoolkit.keybinds.category"),
+                        (_, value) -> ChatKeybindsModule.setKeybindCategory(value)
+                );
+        addRenderableWidget(categoryButton);
+        this.addButton = this.addRenderableWidget(
+                Button.builder(CommonComponents.GUI_DONE, _ -> this.onAdd())
+                        .bounds(widgetX, categoryButton.getY() + 30, widgetWidth, widgetHeight).build()
+        );
+        this.addRenderableWidget(
+                Button.builder(CommonComponents.GUI_CANCEL, _ -> this.onClose())
+                        .bounds(widgetX, addButton.getY() + 24, widgetWidth, widgetHeight)
+                        .build()
+        );
     }
 
-    void updateKeyText() {
-        if (listening)
-            keyButton.setMessage(Component.literal("..."));
-        else
-            keyButton.setMessage(key.getDisplayName());
+    private void onAddButtonUpdate(String s) {
+        this.addButton.active = !this.commandBox.getValue().isEmpty();
     }
 
-    void onAdd(Button b) {
-        add();
-    }
-
-    void onCancel(Button b) {
-        onClose();
-    }
-
-    void add() {
+    void onAdd() {
         String command = commandBox.getValue().strip();
         String name = nameBox.getValue().strip();
-        String categoryString = "userbinds";
-        ComponentContents categoryContents = categoryButton.getMessage().getContents();
-        if (categoryContents instanceof TranslatableContents) {
-            String[] splitCategory = ((TranslatableContents) categoryContents).getKey().split("\\.");
-            categoryString = splitCategory[splitCategory.length - 1];
-        }
+        KeybindCategory category = categoryButton.getValue();
         if (command.isEmpty())
             return;
 
         if (name.isEmpty())
             name = command;
 
-        updateChatKeybindMap(categoryString, name, command, key);
+        updateChatKeybindMap(category, name, command, InputConstants.UNKNOWN);
         ConfigManager.saveConfig();
         onClose();
     }

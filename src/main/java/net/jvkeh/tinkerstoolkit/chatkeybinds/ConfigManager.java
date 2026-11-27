@@ -24,7 +24,7 @@ public class ConfigManager {
         ArrayList<ChatKeybind> removedBinds = new ArrayList<>();
         if (chatKeybindMap != null && mc.options != null) {
             ArrayList<KeyMapping> keys = new ArrayList<>(Arrays.asList(mc.options.keyMappings));
-            for (Map.Entry<String, ArrayList<ChatKeybind>> category : chatKeybindMap.entrySet()) {
+            for (Map.Entry<KeybindCategory, ArrayList<ChatKeybind>> category : chatKeybindMap.entrySet()) {
                 for (ChatKeybind keybind : category.getValue()) {
                     if (keys.remove(keybind.keyMapping)) {
                         removedBinds.add(keybind);
@@ -43,16 +43,16 @@ public class ConfigManager {
             }
             String str = Files.readString(keybindsConfig);
             JsonObject jsonObject = JsonParser.parseString(str).getAsJsonObject();
-            addCategoryToMap("player", jsonObject, removedBinds);
-            addCategoryToMap("storyteller", jsonObject, removedBinds);
-            addCategoryToMap("userbinds", jsonObject, removedBinds);
+            for (KeybindCategory category : KeybindCategory.values()) {
+                addCategoryToMap(category, jsonObject, removedBinds);
+            }
         } catch (Exception e) {
             LOGGER.error("Failed to load config", e);
         }
     }
 
-    private static void addCategoryToMap(String categoryString, JsonObject jsonObject, ArrayList<ChatKeybind> removedBinds) {
-        JsonArray array = jsonObject.getAsJsonArray(categoryString);
+    private static void addCategoryToMap(KeybindCategory category, JsonObject jsonObject, ArrayList<ChatKeybind> removedBinds) {
+        JsonArray array = jsonObject.getAsJsonArray(category.name());
         if (array == null) {
             return;
         }
@@ -64,9 +64,9 @@ public class ConfigManager {
                         .filter(keybind -> keybind.name.equals(name) && keybind.command.equals(command))
                         .findFirst();
                 if (match.isPresent()) {
-                    updateChatKeybindMap(categoryString, name, command, match.get().keyMapping);
+                    updateChatKeybindMap(category, name, command, match.get().keyMapping);
                 } else {
-                    updateChatKeybindMap(categoryString, name, command, InputConstants.UNKNOWN);
+                    updateChatKeybindMap(category, name, command, InputConstants.UNKNOWN);
                 }
             }
         }

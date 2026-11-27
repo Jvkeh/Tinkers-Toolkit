@@ -5,25 +5,27 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 
 public class ChatKeybindsModule {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("tinkers-toolkit/chat-keybindsbinds");
-    static final List<String> CATEGORY_STRINGS = Arrays.asList("userbinds", "storyteller", "player");
-    static final KeyMapping.Category CHAT_KEYBBINDS_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("tinkerstoolkit", "chatkeybinds"));
 
+    static final KeyMapping.Category CHAT_KEYBBINDS_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("tinkerstoolkit", "chatkeybinds"));
     static final KeyMapping.Category USERBINDS_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("tinkerstoolkit", "userbinds"));
     static final KeyMapping.Category PLAYER_CATEGORY = new KeyMapping.Category(Identifier.fromNamespaceAndPath("tinkerstoolkit", "player"));
     static final KeyMapping.Category STORYTELLER_CATEGORY = new KeyMapping.Category(Identifier.fromNamespaceAndPath("tinkerstoolkit", "storyteller"));
-
-    static SortedMap<String, ArrayList<ChatKeybind>> chatKeybindMap = new TreeMap<>();
-    static int currentCategoryIndex = 0;
+    static SortedMap<KeybindCategory, ArrayList<ChatKeybind>> chatKeybindMap = new TreeMap<>();
+    private static KeybindCategory keybindCategory = KeybindCategory.DEFAULT;
 
     public ChatKeybindsModule() {
         int index = KeyMapping.Category.SORT_ORDER.indexOf(KeyMapping.Category.MOVEMENT) + 1;
@@ -39,30 +41,38 @@ public class ChatKeybindsModule {
             Minecraft.getInstance().player.connection.sendChat(msg);
     }
 
-    public static void updateChatKeybindMap(String categoryString, String name, String command, InputConstants.Key key) {
+    public static void updateChatKeybindMap(KeybindCategory category, String name, String command, InputConstants.Key key) {
         ChatKeybind newBind;
-        if (categoryString.equals("player")) {
+        if (category.equals(KeybindCategory.PLAYER)) {
             newBind = new ChatKeybind(name, command, key, PLAYER_CATEGORY);
-        } else if (categoryString.equals("storyteller")) {
+        } else if (category.equals(KeybindCategory.STORYTELLER)) {
             newBind = new ChatKeybind(name, command, key, STORYTELLER_CATEGORY);
         } else {
             newBind = new ChatKeybind(name, command, key, USERBINDS_CATEGORY);
         }
-        chatKeybindMap.computeIfAbsent(categoryString, k -> new ArrayList<>()).add(newBind);
+        chatKeybindMap.computeIfAbsent(category, _ -> new ArrayList<>()).add(newBind);
         KeyMapping.resetMapping();
     }
 
-    public static void updateChatKeybindMap(String categoryString, String name, String command, KeyMapping keyMapping) {
+    public static void updateChatKeybindMap(KeybindCategory category, String name, String command, KeyMapping keyMapping) {
         ChatKeybind newBind;
-        if (categoryString.equals("player")) {
+        if (category.equals(KeybindCategory.PLAYER)) {
             newBind = new ChatKeybind(name, command, keyMapping);
-        } else if (categoryString.equals("storyteller")) {
+        } else if (category.equals(KeybindCategory.STORYTELLER)) {
             newBind = new ChatKeybind(name, command, keyMapping);
         } else {
             newBind = new ChatKeybind(name, command, keyMapping);
         }
-        chatKeybindMap.computeIfAbsent(categoryString, k -> new ArrayList<>()).add(newBind);
+        chatKeybindMap.computeIfAbsent(category, _ -> new ArrayList<>()).add(newBind);
         KeyMapping.resetMapping();
+    }
+
+    public static KeybindCategory getKeybindCategory() {
+        return keybindCategory;
+    }
+
+    public static void setKeybindCategory(KeybindCategory value) {
+        keybindCategory = value;
     }
 
     public void onInitialise() {
@@ -85,12 +95,28 @@ public class ChatKeybindsModule {
                 client.gui.setScreen(new AddChatKeybindScreen(null));
             }
 
-            for (Map.Entry<String, ArrayList<ChatKeybind>> category : chatKeybindMap.entrySet())
+            for (Map.Entry<KeybindCategory, ArrayList<ChatKeybind>> category : chatKeybindMap.entrySet())
                 for (ChatKeybind keybind : category.getValue()) {
                     if (keybind.keyMapping.consumeClick())
                         sendMessage(keybind.command);
                 }
         });
         ConfigManager.loadConfig();
+    }
+
+    public enum KeybindCategory {
+        STORYTELLER("storyteller"),
+        PLAYER("player"),
+        DEFAULT("userbinds");
+
+        private final Component name;
+
+        KeybindCategory(final String name) {
+            this.name = Component.translatable("key.category.tinkerstoolkit." + name);
+        }
+
+        public Component getName() {
+            return name;
+        }
     }
 }

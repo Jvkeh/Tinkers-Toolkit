@@ -13,6 +13,7 @@ import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 
@@ -58,7 +59,7 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
                 .width(150)
                 .build());
 
-        bottomFooterButtons.addChild(Button.builder(Component.translatable("tinkerstoolkit.keybinds.menuScreen.done"), this::onClose)
+        bottomFooterButtons.addChild(Button.builder(CommonComponents.GUI_DONE, this::onClose)
                 .width(150)
                 .build());
 
@@ -147,7 +148,7 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
 
         public void updateEntries() {
             this.clearEntries();
-            for (Map.Entry<String, ArrayList<ChatKeybind>> category : chatKeybindMap.entrySet()) {
+            for (Map.Entry<ChatKeybindsModule.KeybindCategory, ArrayList<ChatKeybind>> category : chatKeybindMap.entrySet()) {
                 for (ChatKeybind keybind : category.getValue()) {
                     Entry e = new Entry(minecraft, keybind, this);
                     addEntry(e);
