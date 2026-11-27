@@ -1,3 +1,8 @@
+
+<p align="center">
+  <img src="src/main/resources/assets/tinkerstoolkit/toolbox.png" alt="Tinker's Toolkit" width="128" />
+  <h2 align="center">Tinker's Toolkit</h2>
+</p>
 This fabric mod is designed to support ['Sybillian's Blood on the Clocktower in Minecraft'](https://github.com/Sybillian/minecraft-botc) modpack.
 
 It aims to provide useful utilities and more, such as custom keybinds!
