@@ -15,7 +15,7 @@
     "issues": "https://github.com/Jvkeh/Tinkers-Toolkit/issues"
   },
   "license": "LGPL-3.0",
-  "icon": "assets/tinkerstoolkit/icon.png",
+  "icon": "assets/tinkerstoolkit/toolbox.png",
   "environment": "client",
   "entrypoints": {
     "main": [
