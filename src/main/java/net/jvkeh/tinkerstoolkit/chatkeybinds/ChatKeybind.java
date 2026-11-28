@@ -4,6 +4,8 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,21 +15,34 @@ public class ChatKeybind {
     public final String name;
     public final String command;
     public KeyMapping keyMapping;
+    public Translatable translatable;
 
-    public ChatKeybind(String name, String command, InputConstants.Key key, KeyMapping.Category category) {
-        this.name = name;
+    public ChatKeybind(String name, String command, InputConstants.Key key, KeyMapping.Category category, Translatable translatable) {
+        if (name.contains("keybinds.tinkerstoolkit.key.") || translatable.equals(Translatable.NO)) {
+            this.name = name;
+        } else {
+            this.name = "keybinds.tinkerstoolkit.key." + name;
+        }
+
         this.command = command;
-        this.keyMapping = new KeyMapping(name,
+        this.keyMapping = new KeyMapping(this.name,
                 InputConstants.Type.KEYBOARD,
                 key.getValue(),
                 category);
+        this.translatable = translatable;
         registerKeybind();
     }
 
-    public ChatKeybind(String name, String command, KeyMapping keyMapping) {
-        this.name = name;
+    public ChatKeybind(String name, String command, KeyMapping keyMapping, Translatable translatable) {
+        if (translatable.equals(Translatable.YES)) {
+            this.name = "keybinds.tinkerstoolkit.key." + name;
+        } else {
+            this.name = name;
+        }
+
         this.command = command;
         this.keyMapping = keyMapping;
+        this.translatable = translatable;
         registerKeybind();
     }
 
@@ -48,5 +63,20 @@ public class ChatKeybind {
         keys.remove(this.keyMapping);
         mc.options.keyMappings = keys.toArray(new KeyMapping[0]);
         mc.options.save();
+    }
+
+    public enum Translatable {
+        YES(CommonComponents.GUI_YES),
+        NO(CommonComponents.GUI_NO);
+
+        private final Component name;
+
+        Translatable(Component name) {
+            this.name = name;
+        }
+
+        public Component getName() {
+            return name;
+        }
     }
 }

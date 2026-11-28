@@ -41,27 +41,27 @@ public class ChatKeybindsModule {
             Minecraft.getInstance().player.connection.sendChat(msg);
     }
 
-    public static void updateChatKeybindMap(KeybindCategory category, String name, String command, InputConstants.Key key) {
+    public static void updateChatKeybindMap(KeybindCategory category, String name, String command, InputConstants.Key key, ChatKeybind.Translatable translatable) {
         ChatKeybind newBind;
         if (category.equals(KeybindCategory.PLAYER)) {
-            newBind = new ChatKeybind(name, command, key, PLAYER_CATEGORY);
+            newBind = new ChatKeybind(name, command, key, PLAYER_CATEGORY, translatable);
         } else if (category.equals(KeybindCategory.STORYTELLER)) {
-            newBind = new ChatKeybind(name, command, key, STORYTELLER_CATEGORY);
+            newBind = new ChatKeybind(name, command, key, STORYTELLER_CATEGORY, translatable);
         } else {
-            newBind = new ChatKeybind(name, command, key, USERBINDS_CATEGORY);
+            newBind = new ChatKeybind(name, command, key, USERBINDS_CATEGORY, translatable);
         }
         chatKeybindMap.computeIfAbsent(category, _ -> new ArrayList<>()).add(newBind);
         KeyMapping.resetMapping();
     }
 
-    public static void updateChatKeybindMap(KeybindCategory category, String name, String command, KeyMapping keyMapping) {
+    public static void updateChatKeybindMap(KeybindCategory category, String name, String command, KeyMapping keyMapping, ChatKeybind.Translatable translatable) {
         ChatKeybind newBind;
         if (category.equals(KeybindCategory.PLAYER)) {
-            newBind = new ChatKeybind(name, command, keyMapping);
+            newBind = new ChatKeybind(name, command, keyMapping, translatable);
         } else if (category.equals(KeybindCategory.STORYTELLER)) {
-            newBind = new ChatKeybind(name, command, keyMapping);
+            newBind = new ChatKeybind(name, command, keyMapping, translatable);
         } else {
-            newBind = new ChatKeybind(name, command, keyMapping);
+            newBind = new ChatKeybind(name, command, keyMapping, translatable);
         }
         chatKeybindMap.computeIfAbsent(category, _ -> new ArrayList<>()).add(newBind);
         KeyMapping.resetMapping();

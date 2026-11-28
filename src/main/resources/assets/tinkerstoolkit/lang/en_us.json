@@ -4,7 +4,6 @@
   "key.category.tinkerstoolkit.storyteller": "Clocktower - Storyteller",
   "key.category.tinkerstoolkit.player": "Clocktower - Player",
   "tinkerstoolkit.keybinds.key.menu": "Command Keybind Menu",
-  "tinkerstoolkit.keybinds.category": "Category",
   "tinkerstoolkit.keybinds.key.add_chat_keybind": "Bind a Command or Message",
   "tinkerstoolkit.keybinds.addScreen.title": "Add a Chat Keybind",
   "tinkerstoolkit.keybinds.addScreen.category": "Category",
@@ -15,5 +14,6 @@
   "tinkerstoolkit.keybinds.menuScreen.title": "Chat Keybinds",
   "tinkerstoolkit.keybinds.menuScreen.reload": "Reload from Config",
   "tinkerstoolkit.keybinds.menuScreen.new": "Add New Keybind",
-  "tinkerstoolkit.keybinds.menuScreen.remove": "Remove Selected"
+  "tinkerstoolkit.keybinds.menuScreen.remove": "Remove Selected",
+  "tinkerstoolkit.keybinds.addScreen.translatable": "Translatable"
 }

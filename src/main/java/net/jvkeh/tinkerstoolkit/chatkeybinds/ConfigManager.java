@@ -60,13 +60,14 @@ public class ConfigManager {
             if (element instanceof JsonObject jo) {
                 String name = jo.get("name").getAsString();
                 String command = jo.get("command").getAsString();
+                String translatable = jo.get("translatable").getAsString();
                 Optional<ChatKeybind> match = removedBinds.stream()
-                        .filter(keybind -> keybind.name.equals(name) && keybind.command.equals(command))
+                        .filter(keybind -> keybind.name.equals(name) && keybind.command.equals(command) && keybind.translatable.getName().getString().equals(translatable))
                         .findFirst();
                 if (match.isPresent()) {
-                    updateChatKeybindMap(category, name, command, match.get().keyMapping);
+                    updateChatKeybindMap(category, name, command, match.get().keyMapping, ChatKeybind.Translatable.valueOf(translatable));
                 } else {
-                    updateChatKeybindMap(category, name, command, InputConstants.UNKNOWN);
+                    updateChatKeybindMap(category, name, command, InputConstants.UNKNOWN, ChatKeybind.Translatable.valueOf(translatable));
                 }
             }
         }
@@ -91,6 +92,7 @@ public class ConfigManager {
             JsonObject jsonObject = new JsonObject();
             jsonObject.add("name", new JsonPrimitive(keybind.name));
             jsonObject.add("command", new JsonPrimitive(keybind.command));
+            jsonObject.add("translatable", new JsonPrimitive(keybind.translatable.name()));
             return jsonObject;
         }
     }

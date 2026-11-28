@@ -196,7 +196,11 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
             @Override
             public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
                 String category = Component.translatable("key.category.tinkerstoolkit." + chatKeybind.keyMapping.getCategory().id().getPath()).getString();
-                graphics.text(client.font, Component.literal(chatKeybind.name), getX() + padding, getY() + 2, 0xFFFFFFFF);
+                if (chatKeybind.translatable.equals(ChatKeybind.Translatable.NO)) {
+                    graphics.text(client.font, Component.literal(chatKeybind.name), getX() + padding, getY() + 2, 0xFFFFFFFF);
+                } else {
+                    graphics.text(client.font, Component.translatable(chatKeybind.name), getX() + padding, getY() + 2, 0xFFFFFFFF);
+                }
                 graphics.text(client.font, Component.literal(chatKeybind.command), getX() + padding, getY() + 12, 0xFF888888);
                 graphics.text(client.font, Component.literal(category), getX() + padding, getY() + 22, 0xFF888888);
 

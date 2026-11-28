@@ -19,14 +19,23 @@ public class AddChatKeybindScreen extends Screen {
     EditBox nameBox;
     EditBox commandBox;
     CycleButton<KeybindCategory> categoryButton;
+    CycleButton<ChatKeybind.Translatable> translatableButton;
     Button addButton;
     Screen parent;
+    private ChatKeybind.Translatable translatable = ChatKeybind.Translatable.NO;
     private int widgetX;
-
 
     public AddChatKeybindScreen(Screen parent) {
         super(Component.translatable("tinkerstoolkit.keybinds.addScreen.title"));
         this.parent = parent;
+    }
+
+    public ChatKeybind.Translatable getTranslatable() {
+        return translatable;
+    }
+
+    public void setTranslatable(ChatKeybind.Translatable translatable) {
+        this.translatable = translatable;
     }
 
     @Override
@@ -37,9 +46,7 @@ public class AddChatKeybindScreen extends Screen {
         // NAME TEXT
         graphics.text(this.font, Component.translatable("tinkerstoolkit.keybinds.addScreen.name"), widgetX + 1, 53, 0xFFA0A0A0);
         // COMMAND TEXT
-        graphics.text(this.font, Component.translatable("tinkerstoolkit.keybinds.addScreen.command"), widgetX + 1, 94, 0xFFA0A0A0);
-        // CATEGORY TEXT
-        graphics.text(this.font, Component.translatable("tinkerstoolkit.keybinds.addScreen.category"), widgetX + 1, 135, 0xFFA0A0A0);
+        graphics.text(this.font, Component.translatable("tinkerstoolkit.keybinds.addScreen.command"), widgetX + 1, 118, 0xFFA0A0A0);
     }
 
     @Override
@@ -49,8 +56,19 @@ public class AddChatKeybindScreen extends Screen {
         int widgetHeight = 20;
         nameBox = new EditBox(this.font, widgetX, 66, widgetWidth, widgetHeight, Component.empty());
         addRenderableWidget(nameBox);
+        translatableButton = CycleButton.builder(ChatKeybind.Translatable::getName, getTranslatable())
+                .withValues(ChatKeybind.Translatable.values())
+                .create(
+                        widgetX,
+                        nameBox.getY() + 24,
+                        widgetWidth,
+                        widgetHeight,
+                        Component.translatable("tinkerstoolkit.keybinds.addScreen.translatable"),
+                        (_, value) -> this.setTranslatable(value)
+                );
 
-        commandBox = new EditBox(this.font, widgetX, nameBox.getY() + 40, widgetWidth, widgetHeight, Component.empty());
+        addRenderableWidget(translatableButton);
+        commandBox = new EditBox(this.font, widgetX, translatableButton.getY() + 40, widgetWidth, widgetHeight, Component.empty());
         commandBox.setResponder(this::onAddButtonUpdate);
         addRenderableWidget(commandBox);
         this.setInitialFocus(commandBox);
@@ -58,10 +76,10 @@ public class AddChatKeybindScreen extends Screen {
                 .withValues(KeybindCategory.values())
                 .create(
                         widgetX,
-                        commandBox.getY() + 40,
+                        commandBox.getY() + 24,
                         widgetWidth,
                         widgetHeight,
-                        Component.translatable("tinkerstoolkit.keybinds.category"),
+                        Component.translatable("tinkerstoolkit.keybinds.addScreen.category"),
                         (_, value) -> ChatKeybindsModule.setKeybindCategory(value)
                 );
         addRenderableWidget(categoryButton);
@@ -69,6 +87,7 @@ public class AddChatKeybindScreen extends Screen {
                 Button.builder(CommonComponents.GUI_DONE, _ -> this.onAdd())
                         .bounds(widgetX, categoryButton.getY() + 30, widgetWidth, widgetHeight).build()
         );
+        this.addButton.active = false;
         this.addRenderableWidget(
                 Button.builder(CommonComponents.GUI_CANCEL, _ -> this.onClose())
                         .bounds(widgetX, addButton.getY() + 24, widgetWidth, widgetHeight)
@@ -90,7 +109,7 @@ public class AddChatKeybindScreen extends Screen {
         if (name.isEmpty())
             name = command;
 
-        updateChatKeybindMap(category, name, command, InputConstants.UNKNOWN);
+        updateChatKeybindMap(category, name, command, InputConstants.UNKNOWN, translatable);
         ConfigManager.saveConfig();
         onClose();
     }
