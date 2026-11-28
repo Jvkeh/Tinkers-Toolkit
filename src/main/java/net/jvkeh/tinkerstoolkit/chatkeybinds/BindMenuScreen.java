@@ -37,6 +37,7 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
 
     @Override
     protected void init() {
+        clearWidgets();
         layout = new HeaderAndFooterLayout(this, 33, 60);
         this.layout.addTitleHeader(this.title, this.font);
 
@@ -194,7 +195,7 @@ public class BindMenuScreen extends Screen implements ModMenuApi {
             }
 
             @Override
-            public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
+            public void extractContent(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
                 String category = Component.translatable("key.category.tinkerstoolkit." + chatKeybind.keyMapping.getCategory().id().getPath()).getString();
                 if (chatKeybind.translatable.equals(ChatKeybind.Translatable.NO)) {
                     graphics.text(client.font, Component.literal(chatKeybind.name), getX() + padding, getY() + 2, 0xFFFFFFFF);

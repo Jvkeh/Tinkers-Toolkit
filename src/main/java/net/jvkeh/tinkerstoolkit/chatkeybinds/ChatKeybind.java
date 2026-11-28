@@ -34,10 +34,10 @@ public class ChatKeybind {
     }
 
     public ChatKeybind(String name, String command, KeyMapping keyMapping, Translatable translatable) {
-        if (translatable.equals(Translatable.YES)) {
-            this.name = "keybinds.tinkerstoolkit.key." + name;
-        } else {
+        if (name.contains("keybinds.tinkerstoolkit.key.") || translatable.equals(Translatable.NO)) {
             this.name = name;
+        } else {
+            this.name = "keybinds.tinkerstoolkit.key." + name;
         }
 
         this.command = command;

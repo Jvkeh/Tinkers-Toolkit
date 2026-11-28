@@ -62,7 +62,7 @@ public class ConfigManager {
                 String command = jo.get("command").getAsString();
                 String translatable = jo.get("translatable").getAsString();
                 Optional<ChatKeybind> match = removedBinds.stream()
-                        .filter(keybind -> keybind.name.equals(name) && keybind.command.equals(command) && keybind.translatable.getName().getString().equals(translatable))
+                        .filter(keybind -> keybind.name.equals(name) && keybind.command.equals(command))
                         .findFirst();
                 if (match.isPresent()) {
                     updateChatKeybindMap(category, name, command, match.get().keyMapping, ChatKeybind.Translatable.valueOf(translatable));
